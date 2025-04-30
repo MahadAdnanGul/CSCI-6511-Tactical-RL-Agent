@@ -9,6 +9,7 @@ public class FloorTile : BaseState
     [SerializeField] private Material exposedMaterial;
     [SerializeField] private Material regularMaterial;
     [SerializeField] private Material wallMaterial;
+    [SerializeField] private Material goalMaterial;
     private MeshRenderer _meshRenderer;
 
     private void Awake()
@@ -23,7 +24,11 @@ public class FloorTile : BaseState
 
     public override void UpdateState()
     {
-        if (IsExposed)
+        if (IsGoal)
+        {
+            _meshRenderer.material = goalMaterial;
+        }
+        else if (IsExposed)
         {
             _meshRenderer.material = exposedMaterial;
         }

@@ -7,10 +7,22 @@ using UnityEngine;
 
 public class PlayerMovement : MonoBehaviour
 {
+    [SerializeField] private Player player;
     [SerializeField] private StateSpaceManager stateSpaceManager;
     [SerializeField] private float playerHeightOffset = 0.5f;
     private BaseState currentState;
 
+    private Vector2Int moveDirection = Vector2Int.zero;
+
+    private void OnEnable()
+    {
+        StateSpaceManager.PlayerStateUpdate += MoveToNextState;
+    }
+
+    private void OnDisable()
+    {
+        StateSpaceManager.PlayerStateUpdate -= MoveToNextState;
+    }
 
     private void Start()
     {
@@ -31,18 +43,31 @@ public class PlayerMovement : MonoBehaviour
             Debug.LogError($"No valid state found at starting position ({gridPos.x}, {gridPos.y})");
         }
     }
-    
-    
 
-    private void MoveToNextState(Vector2Int direction)
+    private void PlayerStateUpdate()
     {
-        if (currentState == null) return;
+        if (currentState.IsGoal)
+        {
+            Debug.Log("Agent Wins!");
+            return;
+        }
+        
+        if (currentState.IsExposed)
+        {
+            //Player may take damage
+            player.TakeDamage();
+        }
+    }
+
+    private void MoveToNextState()
+    {
+        if (currentState == null || !player.IsAlive() || currentState.IsGoal) return;
 
         // Get current grid position
         Vector2Int currentGridPos = stateSpaceManager.WorldToGrid(currentState.transform.position);
 
         // Calculate new grid position
-        Vector2Int newGridPos = currentGridPos + direction;
+        Vector2Int newGridPos = currentGridPos + moveDirection;
 
         // Get the state at the new position
         BaseState nextState = stateSpaceManager.GetStateAt(newGridPos.x, newGridPos.y);
@@ -63,12 +88,16 @@ public class PlayerMovement : MonoBehaviour
         {
             Debug.Log("Blocked: Cannot move into wall or out of bounds.");
         }
+        PlayerStateUpdate();
     }
 
     private void Update()
     {
-            Vector2Int moveDirection = Vector2Int.zero;
-
+        if (!player.IsAlive())
+        {
+            return;
+        }
+        
             if (Input.GetKeyDown(KeyCode.W))
             {
                 moveDirection = Vector2Int.up;
@@ -85,11 +114,17 @@ public class PlayerMovement : MonoBehaviour
             {
                 moveDirection = Vector2Int.right;
             }
-            
-            if (moveDirection != Vector2Int.zero)
+
+            /*elapsedTime += Time.deltaTime;
+            if (elapsedTime >= timeStepUpdateRate)
             {
-                MoveToNextState(moveDirection);
-            }
+                elapsedTime = 0;
+                //Simulate Time Step;
+                MoveToNextState();
+                moveDirection = Vector2Int.zero;
+            }*/
+            
+            
             
     }
 }

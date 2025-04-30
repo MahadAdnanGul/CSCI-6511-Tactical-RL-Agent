@@ -32,6 +32,15 @@ public class Turret : MonoBehaviour
 
     [SerializeField] private LayerMask stateMask;
 
+    private void OnEnable()
+    {
+        StateSpaceManager.TurretStateUpdate += HandleRotation;
+    }
+
+    private void OnDisable()
+    {
+        StateSpaceManager.TurretStateUpdate -= HandleRotation;
+    }
 
     private void CheckStates()
     {
@@ -81,7 +90,7 @@ public class Turret : MonoBehaviour
 
     private void Update()
     {
-        HandleRotation();
+        //HandleRotation();
         //CheckTarget();
         CheckStates();
     }

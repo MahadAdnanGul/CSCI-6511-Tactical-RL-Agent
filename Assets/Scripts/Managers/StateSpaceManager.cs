@@ -17,6 +17,8 @@ public enum DebugLevel
 }
 public class StateSpaceManager : MonoBehaviour
 {
+    public static Action TurretStateUpdate { get; set; }
+    public static Action PlayerStateUpdate { get; set; }
 
     [Tooltip("Enable debug mode to see text overlays on top of each grid position")]
     [SerializeField] private DebugLevel debugLevel = DebugLevel.None;
@@ -27,6 +29,9 @@ public class StateSpaceManager : MonoBehaviour
     
     private float minX;
     private float minZ;
+    
+    [SerializeField] private float timeStepUpdateRate = 1f;
+    private float elapsedTime = 0;
 
     private void Awake()
     {
@@ -149,6 +154,15 @@ public class StateSpaceManager : MonoBehaviour
     // Update is called once per frame
     void LateUpdate()
     {
+        elapsedTime += Time.deltaTime;
+        if (elapsedTime >= timeStepUpdateRate)
+        {
+            elapsedTime = 0;
+            PlayerStateUpdate?.Invoke();
+            TurretStateUpdate?.Invoke();
+        }
+        
+        
         if (debugLevel == DebugLevel.Basic)
         {
             foreach (var stateArr in stateSpace)
@@ -159,6 +173,8 @@ public class StateSpaceManager : MonoBehaviour
                 }
             }
         }
+        
+        
         
     }
 }
