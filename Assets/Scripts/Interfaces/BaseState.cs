@@ -11,7 +11,6 @@ namespace Interfaces
         public bool IsExposed { get; set; }
         public bool IsGoal;
         public bool ContainsHealth;
-        public bool IsSmoked { get; set; } = false;
 
         public abstract void UpdateState();
     }

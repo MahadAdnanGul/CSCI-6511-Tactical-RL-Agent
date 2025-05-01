@@ -53,7 +53,7 @@ public class Turret : MonoBehaviour
                 var state = hit.GetComponent<BaseState>();
                 Vector3 dirToTarget = (hit.transform.position - transform.position);
                 dirToTarget = new Vector3(dirToTarget.x, 0, dirToTarget.z).normalized;
-                if (Vector3.Angle(transform.forward, dirToTarget) <= losAngle / 2 && !state.IsSmoked)
+                if (Vector3.Angle(transform.forward, dirToTarget) <= losAngle / 2)
                 {
                     if (!state.IsExposed)
                     {

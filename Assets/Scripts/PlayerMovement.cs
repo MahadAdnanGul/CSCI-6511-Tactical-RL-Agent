@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using Interfaces;
 using StarterAssets;
+using Unity.Mathematics;
 using UnityEngine;
 
 public class PlayerMovement : MonoBehaviour
@@ -104,16 +105,15 @@ public class PlayerMovement : MonoBehaviour
         {
             useSmoke = false;
             hasSmoke = false;
-            int smokeRange = Mathf.RoundToInt(smokePrefab.GetComponent<ParticleSystem>().shape.scale.y/2);
+            int smokeRange = Mathf.RoundToInt(smokePrefab.GetComponent<ParticleSystem>().shape.scale.y/2) + 1;
             for (int i = smokeRange; i >= 0; i--)
             {
                 Vector3 pos = new Vector3(currentState.transform.position.x, currentState.transform.position.y + 0.5f,
-                    currentState.transform.position.z + smokeRange);
+                    currentState.transform.position.z + i);
                 BaseState state = stateSpaceManager.GetStateAt((int)pos.x, (int)pos.z);
                 if (state != null)
                 {
-                    GameObject smoke = Instantiate(smokePrefab);
-                    smoke.transform.position = pos;
+                    GameObject smoke = Instantiate(smokePrefab, pos, quaternion.identity);
                     break;
                 }
             }
