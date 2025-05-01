@@ -17,6 +17,7 @@ public enum DebugLevel
 }
 public class StateSpaceManager : MonoBehaviour
 {
+    public static Action SmokeStateUpdate { get; set; }
     public static Action TurretStateUpdate { get; set; }
     public static Action PlayerStateUpdate { get; set; }
 
@@ -158,11 +159,11 @@ public class StateSpaceManager : MonoBehaviour
         if (elapsedTime >= timeStepUpdateRate)
         {
             elapsedTime = 0;
+            SmokeStateUpdate?.Invoke();
             PlayerStateUpdate?.Invoke();
             TurretStateUpdate?.Invoke();
         }
-        
-        
+
         if (debugLevel == DebugLevel.Basic)
         {
             foreach (var stateArr in stateSpace)
@@ -173,8 +174,6 @@ public class StateSpaceManager : MonoBehaviour
                 }
             }
         }
-        
-        
         
     }
 }

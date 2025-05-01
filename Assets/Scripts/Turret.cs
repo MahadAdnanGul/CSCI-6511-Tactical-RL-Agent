@@ -53,14 +53,14 @@ public class Turret : MonoBehaviour
                 var state = hit.GetComponent<BaseState>();
                 Vector3 dirToTarget = (hit.transform.position - transform.position);
                 dirToTarget = new Vector3(dirToTarget.x, 0, dirToTarget.z).normalized;
-                if (Vector3.Angle(transform.forward, dirToTarget) <= losAngle / 2)
+                if (Vector3.Angle(transform.forward, dirToTarget) <= losAngle / 2 && !state.IsSmoked)
                 {
                     if (!state.IsExposed)
                     {
                         float distance = Vector3.Distance(transform.position, state.transform.position);
 
                         // Raycast to check if there is a wall in the way
-                        if (!Physics.Raycast(transform.position, dirToTarget, distance, wallMask))
+                        if (!Physics.Raycast(transform.position, dirToTarget, distance, wallMask, QueryTriggerInteraction.Collide))
                         {
                             state.IsExposed = true;
                         }
@@ -92,7 +92,7 @@ public class Turret : MonoBehaviour
     {
         //HandleRotation();
         //CheckTarget();
-        CheckStates();
+       // CheckStates();
     }
 
     private void CheckTarget()
@@ -158,5 +158,7 @@ public class Turret : MonoBehaviour
             _currentRotation = -maxRotation;
             _postiveRotation = true;
         }
+        
+        CheckStates();
     }
 }

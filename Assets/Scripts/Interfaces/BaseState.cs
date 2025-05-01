@@ -10,7 +10,8 @@ namespace Interfaces
         public bool IsWall { get; set; }
         public bool IsExposed { get; set; }
         public bool IsGoal;
-        public bool ContainsHealth { get; set; }
+        public bool ContainsHealth;
+        public bool IsSmoked { get; set; } = false;
 
         public abstract void UpdateState();
     }

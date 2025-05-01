@@ -1,5 +1,7 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
+using Unity.Mathematics;
 using UnityEngine;
 
 public class Player : MonoBehaviour
@@ -9,6 +11,11 @@ public class Player : MonoBehaviour
 
     private bool _isAlive = true;
 
+    public void Heal()
+    {
+        health = math.min(3, health + 1);
+        Debug.Log("Player Consumed Health Item.");
+    }
     public void TakeDamage()
     {
         if (!_isAlive)
@@ -20,7 +27,7 @@ public class Player : MonoBehaviour
         if (takeDamage)
         {
             Debug.Log("Agent Took Damage");
-            health--;
+            health = math.max(0, health - 1);
             if (health <= 0)
             {
                 OnDeath();

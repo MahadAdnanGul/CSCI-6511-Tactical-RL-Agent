@@ -10,9 +10,12 @@ public class PlayerMovement : MonoBehaviour
     [SerializeField] private Player player;
     [SerializeField] private StateSpaceManager stateSpaceManager;
     [SerializeField] private float playerHeightOffset = 0.5f;
+    [SerializeField] private GameObject smokePrefab;
     private BaseState currentState;
 
     private Vector2Int moveDirection = Vector2Int.zero;
+    private bool useSmoke = false;
+    private bool hasSmoke = true;
 
     private void OnEnable()
     {
@@ -57,6 +60,13 @@ public class PlayerMovement : MonoBehaviour
             //Player may take damage
             player.TakeDamage();
         }
+
+        if (currentState.ContainsHealth)
+        {
+            currentState.ContainsHealth = false;
+            player.Heal();
+
+        }
     }
 
     private void MoveToNextState()
@@ -83,11 +93,33 @@ public class PlayerMovement : MonoBehaviour
             {
                 Debug.Log("Player at EXPOSED STATE");
             }
+            
         }
         else
         {
             Debug.Log("Blocked: Cannot move into wall or out of bounds.");
         }
+
+        if (useSmoke)
+        {
+            useSmoke = false;
+            hasSmoke = false;
+            int smokeRange = Mathf.RoundToInt(smokePrefab.GetComponent<ParticleSystem>().shape.scale.y/2);
+            for (int i = smokeRange; i >= 0; i--)
+            {
+                Vector3 pos = new Vector3(currentState.transform.position.x, currentState.transform.position.y + 0.5f,
+                    currentState.transform.position.z + smokeRange);
+                BaseState state = stateSpaceManager.GetStateAt((int)pos.x, (int)pos.z);
+                if (state != null)
+                {
+                    GameObject smoke = Instantiate(smokePrefab);
+                    smoke.transform.position = pos;
+                    break;
+                }
+            }
+
+        }
+        
         PlayerStateUpdate();
     }
 
@@ -98,33 +130,30 @@ public class PlayerMovement : MonoBehaviour
             return;
         }
         
-            if (Input.GetKeyDown(KeyCode.W))
+        if (Input.GetKeyDown(KeyCode.W))
+        {
+            moveDirection = Vector2Int.up;
+        }
+        else if (Input.GetKeyDown(KeyCode.S))
+        {
+            moveDirection = Vector2Int.down; 
+        }
+        else if (Input.GetKeyDown(KeyCode.A))
+        {
+            moveDirection = Vector2Int.left; 
+        }
+        else if (Input.GetKeyDown(KeyCode.D))
+        {
+            moveDirection = Vector2Int.right;
+        }
+        else if (Input.GetKeyDown(KeyCode.Space))
+        {
+            moveDirection = Vector2Int.zero;
+            if (hasSmoke)
             {
-                moveDirection = Vector2Int.up;
+                useSmoke = true;
             }
-            else if (Input.GetKeyDown(KeyCode.S))
-            {
-                moveDirection = Vector2Int.down; 
-            }
-            else if (Input.GetKeyDown(KeyCode.A))
-            {
-                moveDirection = Vector2Int.left; 
-            }
-            else if (Input.GetKeyDown(KeyCode.D))
-            {
-                moveDirection = Vector2Int.right;
-            }
-
-            /*elapsedTime += Time.deltaTime;
-            if (elapsedTime >= timeStepUpdateRate)
-            {
-                elapsedTime = 0;
-                //Simulate Time Step;
-                MoveToNextState();
-                moveDirection = Vector2Int.zero;
-            }*/
-            
-            
+        }
             
     }
 }
@@ -135,5 +164,6 @@ public enum PlayerActions
     Up,
     Down,
     Left,
-    Right
+    Right,
+    Smoke
 }

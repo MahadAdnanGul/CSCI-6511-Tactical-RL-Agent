@@ -10,6 +10,7 @@ public class FloorTile : BaseState
     [SerializeField] private Material regularMaterial;
     [SerializeField] private Material wallMaterial;
     [SerializeField] private Material goalMaterial;
+    [SerializeField] private GameObject healthItem;
     private MeshRenderer _meshRenderer;
 
     private void Awake()
@@ -40,5 +41,7 @@ public class FloorTile : BaseState
         {
             _meshRenderer.material = regularMaterial;
         }
+
+        healthItem.SetActive(ContainsHealth);
     }
 }
