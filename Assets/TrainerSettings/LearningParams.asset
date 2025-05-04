@@ -21,3 +21,4 @@ MonoBehaviour:
   visualizeTraining: 1
   stepDelay: 0.125
   debugLevel: 0
+  trainingMode: 1

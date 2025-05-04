@@ -17,7 +17,6 @@ public enum DebugLevel
 }
 public class StateSpaceManager : MonoBehaviour
 {
-    public bool trainingMode = true;
     public static Action TurretStateUpdate { get; set; }
     public static Action PlayerStateUpdate { get; set; }
 
@@ -33,7 +32,6 @@ public class StateSpaceManager : MonoBehaviour
     private float minZ;
     public int numberOfExposedStatesSmoked = 0;
     
-    [SerializeField] private float timeStepUpdateRate = 1f;
     private float elapsedTime = 0;
 
     private void Awake()
@@ -216,11 +214,11 @@ public class StateSpaceManager : MonoBehaviour
     // Update is called once per frame
     void LateUpdate()
     {
-        if(trainingMode)
+        if(settings.trainingMode)
             return;
         
         elapsedTime += Time.deltaTime;
-        if (elapsedTime >= timeStepUpdateRate)
+        if (elapsedTime >= settings.stepDelay)
         {
             elapsedTime = 0;
             ExecuteAction();

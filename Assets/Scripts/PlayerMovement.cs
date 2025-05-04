@@ -162,7 +162,7 @@ public class PlayerMovement : MonoBehaviour
 
     private void Update()
     {
-        if(!stateSpaceManager.trainingMode)
+        if(!stateSpaceManager.settings.trainingMode)
             HandlePlayerInput();
         else
         {
@@ -178,9 +178,8 @@ public class PlayerMovement : MonoBehaviour
                     transform.position = Vector3.Lerp(new Vector3(player.currentState.transform.position.x + 0.5f, player.transform.position.y, player.currentState.transform.position.z + 0.5f), dest, t);
                 }
             }
-            
-            
         }
+       
     }
 
     public PlayerActions[] GetLegalActions(BaseState state, bool excludeSmoke = false)

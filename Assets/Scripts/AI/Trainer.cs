@@ -30,7 +30,7 @@ public class Trainer : MonoBehaviour
             return;
         }
         
-        if (!stateManager.trainingMode)
+        if (!stateManager.settings.trainingMode)
         {
             Debug.LogWarning("Training Mode Disabled... Trainer will not work.");
             return;
@@ -93,23 +93,38 @@ public class Trainer : MonoBehaviour
                 //if (stepDelay > 0f)
                     //yield return new WaitForSeconds(stepDelay);
             }
+            string msg = $"Episode {i}/{settings.totalEpisodes} Completed: Reward = {totalReward}";
+            Debug.Log(msg);
+            debugUI.ShowDebugMessage(msg);
             
             // Saving data periodically
             if (i % 100 == 0)
             {
-                agentRL.SaveTrainingData();
+                if (!settings.ignoreSave)
+                {
+                    agentRL.SaveTrainingData();
+                }
                 Debug.Log($"Win Rate: {(wins/100f)*100f}%");
+                if (settings.evalMode)
+                {
+                    debugUI.ShowDebugMessage($"Win Rate: {(wins/100f)*100f}%");
+                    break;
+                }
                 wins = 0;
+               
             }
 
-            string msg = $"Episode {i}/{settings.totalEpisodes} Completed: Reward = {totalReward}";
-            Debug.Log(msg);
-            debugUI.ShowDebugMessage(msg);
+           
+           
         }
 
         Debug.Log($"Training complete!");
-        
-        agentRL.SaveTrainingData();
+
+        if (!settings.ignoreSave)
+        {
+            agentRL.SaveTrainingData();
+        }
+       
     }
     
     private IEnumerator TrainingLoop()

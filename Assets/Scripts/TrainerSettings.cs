@@ -29,4 +29,9 @@ public class TrainerSettings : ScriptableObject
     
     [Tooltip("Enable debug mode to see text overlays on top of each grid position")]
     public DebugLevel debugLevel = DebugLevel.Basic;
+
+
+    public bool trainingMode = false;
+    public bool ignoreSave = true;
+    public bool evalMode = false;
 }
