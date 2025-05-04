@@ -426,6 +426,6 @@ MonoBehaviour:
   exposedMaterial: {fileID: 2100000, guid: 1176ce7916f64284bb04e49cb8d84262, type: 2}
   regularMaterial: {fileID: 2100000, guid: ff188f58422043f489060e28a5e4e0c0, type: 2}
   wallMaterial: {fileID: 2100000, guid: 7ab977a21c92388468ee65ad1c0e5a78, type: 2}
-  goalMaterial: {fileID: 0}
+  goalMaterial: {fileID: 2100000, guid: c0725d22431ed7b488524b7b8af0ce33, type: 2}
   healthItem: {fileID: 713821933044485406}
   _meshRenderer: {fileID: 6014124411313443584}
