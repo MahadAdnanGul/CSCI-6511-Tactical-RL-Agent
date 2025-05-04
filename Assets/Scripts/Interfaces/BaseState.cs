@@ -6,12 +6,21 @@ namespace Interfaces
 {
     public abstract class BaseState : MonoBehaviour
     {
-        public abstract Vector3 GetPosition();
-        public bool IsWall { get; set; }
-        public bool IsExposed { get; set; }
+        public abstract Vector2Int GetPosition();
+        public bool IsWall { get; set; } = false;
+        public bool IsExposed { get; set; } = false;
         public bool IsGoal;
         public bool ContainsHealth;
 
         public abstract void UpdateState();
+        public abstract void ResetState();
+    }
+
+    public struct StateValues
+    {
+        public bool IsWall;
+        public bool IsExposed;
+        public bool IsGoal;
+        public bool ContainsHealth;
     }
 }

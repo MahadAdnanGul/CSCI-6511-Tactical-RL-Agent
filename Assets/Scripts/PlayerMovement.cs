@@ -1,9 +1,11 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using Interfaces;
 using StarterAssets;
 using Unity.Mathematics;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class PlayerMovement : MonoBehaviour
@@ -12,11 +14,9 @@ public class PlayerMovement : MonoBehaviour
     [SerializeField] private StateSpaceManager stateSpaceManager;
     [SerializeField] private float playerHeightOffset = 0.5f;
     [SerializeField] private GameObject smokePrefab;
-    private BaseState currentState;
 
     private Vector2Int moveDirection = Vector2Int.zero;
-    private bool useSmoke = false;
-    private bool hasSmoke = true;
+    public bool useSmoke = false;
 
     private void OnEnable()
     {
@@ -28,92 +28,114 @@ public class PlayerMovement : MonoBehaviour
         StateSpaceManager.PlayerStateUpdate -= MoveToNextState;
     }
 
-    private void Start()
+    
+    public void SetAction(PlayerActions action)
     {
-        Vector3 playerPos = transform.position;
-
-        // Convert world position to grid indices
-        Vector2Int gridPos = stateSpaceManager.WorldToGrid(playerPos);
-
-        // Get the closest BaseState
-        currentState = stateSpaceManager.GetStateAt(gridPos.x, gridPos.y);
-        
-        if (currentState != null)
+        useSmoke = false;
+        moveDirection = Vector2Int.zero;
+        switch (action)
         {
-            Debug.Log($"Player starting at State ({gridPos.x}, {gridPos.y})");
-        }
-        else
-        {
-            Debug.LogError($"No valid state found at starting position ({gridPos.x}, {gridPos.y})");
+            case PlayerActions.None:
+                moveDirection = Vector2Int.zero;
+                break;
+            case PlayerActions.Up:
+                moveDirection = Vector2Int.up;
+                break;
+            case PlayerActions.Down:
+                moveDirection = Vector2Int.down;
+                break;
+            case PlayerActions.Left:
+                moveDirection = Vector2Int.left;
+                break;
+            case PlayerActions.Right:
+                moveDirection = Vector2Int.right;
+                break;
+            case PlayerActions.Smoke:
+                if (player.hasSmoke)
+                {
+                    moveDirection = Vector2Int.zero;
+                    useSmoke = true;
+                }
+                break;
         }
     }
+    
 
     private void PlayerStateUpdate()
     {
-        if (currentState.IsGoal)
+        if (player.currentState.IsGoal)
         {
+            player.reachedGoal = true;
             Debug.Log("Agent Wins!");
             return;
         }
         
-        if (currentState.IsExposed)
+        if (player.currentState.IsExposed)
         {
             //Player may take damage
             player.TakeDamage();
         }
 
-        if (currentState.ContainsHealth)
+        if (player.currentState.ContainsHealth)
         {
-            currentState.ContainsHealth = false;
+            player.currentState.ContainsHealth = false;
             player.Heal();
 
         }
     }
 
+    private bool CheckIfMoveLegal(Vector2Int moveDir, BaseState state)
+    {
+        Vector2Int currentGridPos = stateSpaceManager.WorldToGrid(state.transform.position);
+        Vector2Int newGridPos = currentGridPos + moveDir;
+        BaseState nextState = stateSpaceManager.GetStateAt(newGridPos.x, newGridPos.y);
+
+        return (nextState != null && !nextState.IsWall);
+
+    }
+
     private void MoveToNextState()
     {
-        if (currentState == null || !player.IsAlive() || currentState.IsGoal) return;
-
-        // Get current grid position
-        Vector2Int currentGridPos = stateSpaceManager.WorldToGrid(currentState.transform.position);
-
-        // Calculate new grid position
+        if (player.currentState == null || !player.IsAlive() || player.currentState.IsGoal) return;
+        
+        Vector2Int currentGridPos = stateSpaceManager.WorldToGrid(player.currentState.transform.position);
         Vector2Int newGridPos = currentGridPos + moveDirection;
-
-        // Get the state at the new position
         BaseState nextState = stateSpaceManager.GetStateAt(newGridPos.x, newGridPos.y);
 
         if (nextState != null && !nextState.IsWall) // Only move if the next state is valid and not a wall
         {
-            currentState = nextState;
-            transform.position = new Vector3(currentState.transform.position.x + 0.5f,
-                currentState.transform.position.y + playerHeightOffset, currentState.transform.position.z + 0.5f); // Move player GameObject to new position
+            player.currentState = nextState;
+            transform.position = new Vector3(player.currentState.transform.position.x + 0.5f,
+                player.currentState.transform.position.y + playerHeightOffset, player.currentState.transform.position.z + 0.5f); // Move player GameObject to new position
 
-            Debug.Log($"Moved to State ({newGridPos.x}, {newGridPos.y})");
-            if (currentState.IsExposed)
+            /*Debug.Log($"Moved to State ({newGridPos.x}, {newGridPos.y})");
+            if (player.currentState.IsExposed)
             {
                 Debug.Log("Player at EXPOSED STATE");
-            }
-            
+            }*/
+
         }
         else
         {
             Debug.Log("Blocked: Cannot move into wall or out of bounds.");
+            
         }
 
         if (useSmoke)
         {
-            useSmoke = false;
-            hasSmoke = false;
+            player.hasSmoke = false;
             int smokeRange = Mathf.RoundToInt(smokePrefab.GetComponent<ParticleSystem>().shape.scale.y/2) + 1;
             for (int i = smokeRange; i >= 0; i--)
             {
-                Vector3 pos = new Vector3(currentState.transform.position.x, currentState.transform.position.y + 0.5f,
-                    currentState.transform.position.z + i);
-                BaseState state = stateSpaceManager.GetStateAt((int)pos.x, (int)pos.z);
+                Vector3 pos = new Vector3(player.currentState.transform.position.x, player.currentState.transform.position.y + 0.5f,
+                    player.currentState.transform.position.z + i);
+                Vector2Int gridPos = stateSpaceManager.WorldToGrid(pos);
+                BaseState state = stateSpaceManager.GetStateAt(gridPos.x, gridPos.y);
                 if (state != null)
                 {
-                    GameObject smoke = Instantiate(smokePrefab, pos, quaternion.identity);
+                    smokePrefab.SetActive(true);
+                    smokePrefab.transform.position = pos;
+                    //GameObject smoke = Instantiate(smokePrefab, pos, quaternion.identity);
                     break;
                 }
             }
@@ -125,36 +147,81 @@ public class PlayerMovement : MonoBehaviour
 
     private void Update()
     {
+        if(!stateSpaceManager.trainingMode)
+            HandlePlayerInput();
+    }
+
+    public PlayerActions[] GetLegalActions(BaseState state, bool excludeSmoke = false)
+    {
+        List<PlayerActions> legalActions = new List<PlayerActions>();
+        if (CheckIfMoveLegal(Vector2Int.up, state))
+        {
+            legalActions.Add(PlayerActions.Up);
+        }
+
+        if (CheckIfMoveLegal(Vector2Int.down, state))
+        {
+            legalActions.Add(PlayerActions.Down);
+        }
+        
+        if (CheckIfMoveLegal(Vector2Int.left, state))
+        {
+            legalActions.Add(PlayerActions.Left);
+        }
+        
+        if (CheckIfMoveLegal(Vector2Int.right, state))
+        {
+            legalActions.Add(PlayerActions.Right);
+        }
+
+        if (!excludeSmoke)
+        {
+            if (player.hasSmoke)
+            {
+                
+                Vector2Int nextPos = stateSpaceManager.WorldToGrid(new Vector3(player.currentState.transform.position.x, 0, player.currentState.transform.position.z + 1f));
+                BaseState nextState = stateSpaceManager.GetStateAt(nextPos.x, nextPos.y);
+                
+                if (player.currentState.IsExposed || (nextState != null && nextState.IsExposed))
+                {
+                    legalActions.Add(PlayerActions.Smoke);
+                }
+            }
+        }
+
+
+        legalActions.Add(PlayerActions.None);
+
+        return legalActions.ToArray();
+    }
+
+    private void HandlePlayerInput()
+    {
         if (!player.IsAlive())
         {
             return;
         }
-        
+
         if (Input.GetKeyDown(KeyCode.W))
         {
-            moveDirection = Vector2Int.up;
+            SetAction(PlayerActions.Up);
         }
         else if (Input.GetKeyDown(KeyCode.S))
         {
-            moveDirection = Vector2Int.down; 
+            SetAction(PlayerActions.Down);
         }
         else if (Input.GetKeyDown(KeyCode.A))
         {
-            moveDirection = Vector2Int.left; 
+            SetAction(PlayerActions.Left);
         }
         else if (Input.GetKeyDown(KeyCode.D))
         {
-            moveDirection = Vector2Int.right;
+            SetAction(PlayerActions.Right);
         }
         else if (Input.GetKeyDown(KeyCode.Space))
         {
-            moveDirection = Vector2Int.zero;
-            if (hasSmoke)
-            {
-                useSmoke = true;
-            }
+            SetAction(PlayerActions.Smoke);
         }
-            
     }
 }
 

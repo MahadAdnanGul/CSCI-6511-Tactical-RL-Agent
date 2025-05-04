@@ -11,16 +11,28 @@ public class FloorTile : BaseState
     [SerializeField] private Material wallMaterial;
     [SerializeField] private Material goalMaterial;
     [SerializeField] private GameObject healthItem;
-    private MeshRenderer _meshRenderer;
+    [SerializeField] private MeshRenderer _meshRenderer;
+    private StateValues initValues;
+    
+    
 
     private void Awake()
     {
-        _meshRenderer = GetComponent<MeshRenderer>();
+       
+        
     }
 
-    public override Vector3 GetPosition()
+    private void Start()
     {
-        return transform.position;
+        initValues.ContainsHealth = ContainsHealth;
+        initValues.IsExposed = IsExposed;
+        initValues.IsWall = IsWall;
+        initValues.IsGoal = IsGoal;
+    }
+
+    public override Vector2Int GetPosition()
+    {
+        return new Vector2Int((int)transform.position.x, (int)transform.position.z);
     }
 
     public override void UpdateState()
@@ -43,5 +55,13 @@ public class FloorTile : BaseState
         }
 
         healthItem.SetActive(ContainsHealth);
+    }
+
+    public override void ResetState()
+    {
+        IsExposed = initValues.IsExposed;
+        IsWall = initValues.IsWall;
+        IsGoal = initValues.IsGoal;
+        ContainsHealth = initValues.ContainsHealth;
     }
 }

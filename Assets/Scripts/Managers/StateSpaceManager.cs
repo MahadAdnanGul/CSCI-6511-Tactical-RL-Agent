@@ -17,7 +17,7 @@ public enum DebugLevel
 }
 public class StateSpaceManager : MonoBehaviour
 {
-    public static Action SmokeStateUpdate { get; set; }
+    public bool trainingMode = true;
     public static Action TurretStateUpdate { get; set; }
     public static Action PlayerStateUpdate { get; set; }
 
@@ -27,9 +27,11 @@ public class StateSpaceManager : MonoBehaviour
     private int gridWidth;
     private int gridHeight;
     private BaseState[][] stateSpace;
+    public BaseState goalState;
     
     private float minX;
     private float minZ;
+    public int numberOfExposedStatesSmoked = 0;
     
     [SerializeField] private float timeStepUpdateRate = 1f;
     private float elapsedTime = 0;
@@ -37,6 +39,29 @@ public class StateSpaceManager : MonoBehaviour
     private void Awake()
     {
         InitializeStateSpace();
+    }
+
+    public void ResetAllStates()
+    {
+        Smoke[] smokes = FindObjectsByType<Smoke>(
+            FindObjectsInactive.Include,
+            FindObjectsSortMode.None
+        );
+
+        foreach (var smoke in smokes)
+        {
+            smoke.gameObject.SetActive(false);
+            //Destroy(smoke.gameObject);
+        }
+        foreach (var stateArr in stateSpace)
+        {
+            foreach (var state in stateArr)
+            {
+                state.ResetState();
+            }
+        }
+
+        numberOfExposedStatesSmoked = 0;
     }
     
 
@@ -50,21 +75,19 @@ public class StateSpaceManager : MonoBehaviour
 
         if (states.Count == 0)
         {
-            Debug.LogError("No states implementing IState found in the scene!");
+            Debug.LogError("No states implementing BaseState found in the scene!");
             return;
         }
 
         minX = states.Min(s => s.GetPosition().x);
-        minZ = states.Min(s => s.GetPosition().z);
+        minZ = states.Min(s => s.GetPosition().y);
         float maxX = states.Max(s => s.GetPosition().x);
-        float maxZ = states.Max(s => s.GetPosition().z);
+        float maxZ = states.Max(s => s.GetPosition().y);
 
         gridWidth = Mathf.RoundToInt(maxX - minX) + 1;
         gridHeight = Mathf.RoundToInt(maxZ - minZ) + 1;
 
-        Debug.Log($"State Space Size: {gridWidth} x {gridHeight}");
-
-        // Step 2: Build a fast lookup set of wall positions
+        //Debug.Log($"State Space Size: {gridWidth} x {gridHeight}");
         HashSet<Vector2Int> wallPositions = new HashSet<Vector2Int>();
 
         foreach (var wall in walls)
@@ -83,9 +106,13 @@ public class StateSpaceManager : MonoBehaviour
         // Assign states
         foreach (var state in states)
         {
-            Vector3 pos = state.GetPosition();
+            Vector2Int pos = state.GetPosition();
             int x = Mathf.RoundToInt(pos.x - minX);
-            int z = Mathf.RoundToInt(pos.z - minZ);
+            int z = Mathf.RoundToInt(pos.y - minZ);
+            if (state.IsGoal)
+            {
+                goalState = state;
+            }
 
             if (x >= 0 && x < gridWidth && z >= 0 && z < gridHeight)
             {
@@ -95,11 +122,16 @@ public class StateSpaceManager : MonoBehaviour
                 {
                     state.IsWall = true;
                 }
-                state.UpdateState();
+
+                if (debugLevel != DebugLevel.None)
+                {
+                    state.UpdateState();
+                }
+                
             }
             else
             {
-                Debug.LogWarning($"State at world position ({pos.x},{pos.z}) is out of adjusted bounds.");
+                Debug.LogWarning($"State at world position ({pos.x},{pos.y}) is out of adjusted bounds.");
             }
         }
     }
@@ -152,19 +184,24 @@ public class StateSpaceManager : MonoBehaviour
         }
     }
 
-    // Update is called once per frame
-    void LateUpdate()
-    {
-        elapsedTime += Time.deltaTime;
-        if (elapsedTime >= timeStepUpdateRate)
-        {
-            elapsedTime = 0;
-            SmokeStateUpdate?.Invoke();
-            PlayerStateUpdate?.Invoke();
-            TurretStateUpdate?.Invoke();
-        }
 
-        if (debugLevel == DebugLevel.Basic)
+    public void ExecuteAction()
+    {
+        numberOfExposedStatesSmoked = 0;
+        PlayerStateUpdate?.Invoke();
+        
+        // Reset exposed states
+        foreach (var stateArr in stateSpace)
+        {
+            foreach (var state in stateArr)
+            {
+                state.IsExposed = false;
+            }
+        }
+        TurretStateUpdate?.Invoke();
+            
+            
+        if (debugLevel != DebugLevel.None)
         {
             foreach (var stateArr in stateSpace)
             {
@@ -174,6 +211,22 @@ public class StateSpaceManager : MonoBehaviour
                 }
             }
         }
+    }
+
+    // Update is called once per frame
+    void LateUpdate()
+    {
+        if(trainingMode)
+            return;
+        
+        elapsedTime += Time.deltaTime;
+        if (elapsedTime >= timeStepUpdateRate)
+        {
+            elapsedTime = 0;
+            ExecuteAction();
+        }
+
+        
         
     }
 }

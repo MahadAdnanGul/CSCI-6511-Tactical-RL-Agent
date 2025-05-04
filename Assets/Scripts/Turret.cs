@@ -9,13 +9,12 @@ public class Turret : MonoBehaviour
     [SerializeField] 
     private TurretLOSVisual LOSVisual;
 
-    [SerializeField] 
-    private GameObject Target;
+    [SerializeField] private StateSpaceManager stateSpaceManager;
+
+    [SerializeField] private GameObject Target;
     [SerializeField] private LayerMask wallMask;
+    [SerializeField] private LayerMask smokeMask;
     
-    
-    [SerializeField] 
-    private int fireRate = 1;
     [SerializeField] 
     private float losRange = 5.0f;
     [SerializeField] 
@@ -48,43 +47,52 @@ public class Turret : MonoBehaviour
 
         foreach (var hit in hits)
         {
-            if (hit.gameObject.layer != wallMask)
+            var state = hit.GetComponent<BaseState>();
+            Vector3 dirToTarget = (hit.transform.position - transform.position);
+            dirToTarget = new Vector3(dirToTarget.x, 0, dirToTarget.z).normalized;
+            if (Vector3.Angle(transform.forward, dirToTarget) <= losAngle / 2)
             {
-                var state = hit.GetComponent<BaseState>();
-                Vector3 dirToTarget = (hit.transform.position - transform.position);
-                dirToTarget = new Vector3(dirToTarget.x, 0, dirToTarget.z).normalized;
-                if (Vector3.Angle(transform.forward, dirToTarget) <= losAngle / 2)
+                if (!state.IsExposed)
                 {
-                    if (!state.IsExposed)
-                    {
-                        float distance = Vector3.Distance(transform.position, state.transform.position);
+                    float distance = Vector3.Distance(transform.position, state.transform.position);
 
-                        // Raycast to check if there is a wall in the way
-                        if (!Physics.Raycast(transform.position, dirToTarget, distance, wallMask, QueryTriggerInteraction.Collide))
+                    // Raycast to check if there is a wall or smoke in the way
+                    RaycastHit hitInfo;
+                    //First check wall
+                    if (!Physics.Raycast(transform.position, dirToTarget,out hitInfo, distance, wallMask,
+                            QueryTriggerInteraction.Collide))
+                    {
+                        // Now check smoke
+                        if (Physics.Raycast(transform.position, dirToTarget,out hitInfo, distance, smokeMask,
+                                QueryTriggerInteraction.Collide))
                         {
+                            // Add smoked state
+                            stateSpaceManager.numberOfExposedStatesSmoked++;
+                        }
+                        else
+                        {
+                            // Blocked by neither so mark exposed
                             state.IsExposed = true;
                         }
+                        
                     }
-                }
-                else
-                {
-                    state.IsExposed = false;
+                   
                 }
             }
-           
         }
+        //Debug.Log($"Number of smoke covers: {stateSpaceManager.numberOfExposedStatesSmoked}");
     }
     
     private void Start()
     {
         _startRotation = transform.rotation.eulerAngles.y;
-        if (LOSVisual == null)
-        {
-            Debug.LogWarning("No LOS Visual Component Assigned! Visuals disabled!");
-        }
         if (Target == null)
         {
             Debug.LogWarning("Target not specified!");
+        }
+        if (LOSVisual == null)
+        {
+           Debug.LogWarning("No LOS Visual Component Assigned! Visuals disabled!");
         }
     }
 
@@ -112,36 +120,26 @@ public class Turret : MonoBehaviour
             // Raycast but ONLY against the wall layer
             if (Physics.Raycast(transform.position, toTargetDir, out RaycastHit hitInfo, targetDistance, wallMask))
             {
-                // If we hit a wall first, target is blocked
-                Debug.Log("Blocked by wall!");
+                //Debug.Log("Blocked by wall!");
             }
             else
             {
-                // No wall hit → target is unobstructed
-                Debug.Log("Target Found and Unobstructed!");
+               // Debug.Log("Target Found and Unobstructed!");
             }
         }
     }
-
-    private void LateUpdate()
-    {
-        if (LOSVisual != null)
-        {
-            LOSVisual.GenerateLOSCone(losAngle, losRange);
-        }
-    }
-
+    
     private void HandleRotation()
     {
         if (_postiveRotation)
         {
-            _currentRotation += rotationSpeed * Time.deltaTime;
-            transform.Rotate(Vector3.up, rotationSpeed * Time.deltaTime);
+            _currentRotation += rotationSpeed;
+            transform.Rotate(Vector3.up, rotationSpeed);
         }
         else
         {
-            _currentRotation -= rotationSpeed * Time.deltaTime;
-            transform.Rotate(Vector3.up, -rotationSpeed * Time.deltaTime);
+            _currentRotation -= rotationSpeed;
+            transform.Rotate(Vector3.up, -rotationSpeed);
         }
 
 
@@ -161,4 +159,11 @@ public class Turret : MonoBehaviour
         
         CheckStates();
     }
+    private void LateUpdate()
+   {
+       if (LOSVisual != null)
+       {
+           LOSVisual.GenerateLOSCone(losAngle, losRange);
+       }
+   }
 }

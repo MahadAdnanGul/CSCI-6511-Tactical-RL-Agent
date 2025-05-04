@@ -428,3 +428,4 @@ MonoBehaviour:
   wallMaterial: {fileID: 2100000, guid: 7ab977a21c92388468ee65ad1c0e5a78, type: 2}
   goalMaterial: {fileID: 0}
   healthItem: {fileID: 713821933044485406}
+  _meshRenderer: {fileID: 6014124411313443584}
