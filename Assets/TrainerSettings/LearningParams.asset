@@ -19,5 +19,5 @@ MonoBehaviour:
   stepsPerEpisode: 200
   totalEpisodes: 50000
   visualizeTraining: 1
-  stepDelay: 0.5
-  debugLevel: 1
+  stepDelay: 0.125
+  debugLevel: 0

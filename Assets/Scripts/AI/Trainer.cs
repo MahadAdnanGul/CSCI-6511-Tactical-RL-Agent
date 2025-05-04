@@ -125,9 +125,16 @@ public class Trainer : MonoBehaviour
             {
                 // Select next action based on agent policy
                 PlayerActions action = agentRL.SelectAction(prevState);
-                playerMovement.SetAction(action);        
+                playerMovement.SetAction(action);
                 
-                yield return new WaitForEndOfFrame();  
+                // Simulation Delay
+                if (settings.stepDelay > 0f)
+                    yield return new WaitForSeconds(settings.stepDelay);
+                else
+                {
+                    yield return new WaitForEndOfFrame();  
+                }
+
                 
                 stateManager.ExecuteAction();
                 float reward = ComputeReward(player.currentState);
@@ -146,16 +153,16 @@ public class Trainer : MonoBehaviour
                 }
 
                 prevState = player.currentState;
-
-                // Simulation Delay
-                if (settings.stepDelay > 0f)
-                    yield return new WaitForSeconds(settings.stepDelay);
+                
             }
             
             // Saving data periodically
             if (i % 100 == 0)
             {
-                agentRL.SaveTrainingData();
+                if (!settings.visualizeTraining)
+                {
+                    agentRL.SaveTrainingData();
+                }
                 Debug.Log($"Win Rate: {(wins/100f)*100f}%");
                 wins = 0;
             }
@@ -166,7 +173,11 @@ public class Trainer : MonoBehaviour
         }
 
         Debug.Log("Training complete!");
-        agentRL.SaveTrainingData();
+        if (!settings.visualizeTraining)
+        {
+            agentRL.SaveTrainingData();
+        }
+
     }
 
     private void ResetEpisode()

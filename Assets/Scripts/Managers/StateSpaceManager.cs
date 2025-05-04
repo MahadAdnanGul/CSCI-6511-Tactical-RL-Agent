@@ -21,8 +21,8 @@ public class StateSpaceManager : MonoBehaviour
     public static Action TurretStateUpdate { get; set; }
     public static Action PlayerStateUpdate { get; set; }
 
-    [Tooltip("Enable debug mode to see text overlays on top of each grid position")]
-    [SerializeField] private DebugLevel debugLevel = DebugLevel.None;
+    [SerializeField] public TrainerSettings settings;
+    
     
     private int gridWidth;
     private int gridHeight;
@@ -123,7 +123,7 @@ public class StateSpaceManager : MonoBehaviour
                     state.IsWall = true;
                 }
 
-                if (debugLevel != DebugLevel.None)
+                if (settings.debugLevel != DebugLevel.None)
                 {
                     state.UpdateState();
                 }
@@ -160,7 +160,7 @@ public class StateSpaceManager : MonoBehaviour
     void OnDrawGizmos()
     {
         if (stateSpace == null) return;
-        if (debugLevel != DebugLevel.Extra) return;
+        if (settings.debugLevel != DebugLevel.Extra) return;
 
         GUIStyle style = new GUIStyle();
         style.normal.textColor = Color.white;
@@ -201,7 +201,7 @@ public class StateSpaceManager : MonoBehaviour
         TurretStateUpdate?.Invoke();
             
             
-        if (debugLevel != DebugLevel.None)
+        if (settings.debugLevel != DebugLevel.None)
         {
             foreach (var stateArr in stateSpace)
             {

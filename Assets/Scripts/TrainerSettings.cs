@@ -27,5 +27,6 @@ public class TrainerSettings : ScriptableObject
     [Tooltip("Add step delay to adjust simulation speed")]
     public float stepDelay = 0f;
     
+    [Tooltip("Enable debug mode to see text overlays on top of each grid position")]
     public DebugLevel debugLevel = DebugLevel.Basic;
 }

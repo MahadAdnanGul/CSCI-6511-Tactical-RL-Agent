@@ -14,9 +14,18 @@ public class PlayerMovement : MonoBehaviour
     [SerializeField] private StateSpaceManager stateSpaceManager;
     [SerializeField] private float playerHeightOffset = 0.5f;
     [SerializeField] private GameObject smokePrefab;
+    
 
     private Vector2Int moveDirection = Vector2Int.zero;
     public bool useSmoke = false;
+    
+    private float moveTimer = 0f;
+    private bool isMoving = false;
+
+    private void Awake()
+    {
+
+    }
 
     private void OnEnable()
     {
@@ -31,7 +40,9 @@ public class PlayerMovement : MonoBehaviour
     
     public void SetAction(PlayerActions action)
     {
+        moveTimer = 0f;
         useSmoke = false;
+        isMoving = false;
         moveDirection = Vector2Int.zero;
         switch (action)
         {
@@ -40,15 +51,19 @@ public class PlayerMovement : MonoBehaviour
                 break;
             case PlayerActions.Up:
                 moveDirection = Vector2Int.up;
+                isMoving = true;
                 break;
             case PlayerActions.Down:
                 moveDirection = Vector2Int.down;
+                isMoving = true;
                 break;
             case PlayerActions.Left:
                 moveDirection = Vector2Int.left;
+                isMoving = true;
                 break;
             case PlayerActions.Right:
                 moveDirection = Vector2Int.right;
+                isMoving = true;
                 break;
             case PlayerActions.Smoke:
                 if (player.hasSmoke)
@@ -96,6 +111,7 @@ public class PlayerMovement : MonoBehaviour
 
     private void MoveToNextState()
     {
+        isMoving = false;
         if (player.currentState == null || !player.IsAlive() || player.currentState.IsGoal) return;
         
         Vector2Int currentGridPos = stateSpaceManager.WorldToGrid(player.currentState.transform.position);
@@ -149,6 +165,23 @@ public class PlayerMovement : MonoBehaviour
     {
         if(!stateSpaceManager.trainingMode)
             HandlePlayerInput();
+        else
+        {
+            if (stateSpaceManager.settings.stepDelay > 0 && stateSpaceManager.settings.visualizeTraining)
+            {
+                if (isMoving)
+                {
+                    float timeStep = stateSpaceManager.settings.stepDelay;
+                    Vector3 dest = new Vector3(player.currentState.transform.position.x + 0.5f + moveDirection.x, player.transform.position.y,
+                        player.currentState.transform.position.z + moveDirection.y + 0.5f);
+                    moveTimer += Time.deltaTime;
+                    float t = Mathf.Clamp01(moveTimer / timeStep);
+                    transform.position = Vector3.Lerp(new Vector3(player.currentState.transform.position.x + 0.5f, player.transform.position.y, player.currentState.transform.position.z + 0.5f), dest, t);
+                }
+            }
+            
+            
+        }
     }
 
     public PlayerActions[] GetLegalActions(BaseState state, bool excludeSmoke = false)
