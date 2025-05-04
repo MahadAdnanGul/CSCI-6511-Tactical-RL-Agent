@@ -129,6 +129,7 @@ public class Trainer : MonoBehaviour
     
     private IEnumerator TrainingLoop()
     {
+        yield return new WaitForEndOfFrame();  
         for (int i = 1; i <= settings.totalEpisodes; i++)
         {
             // Init Episode
@@ -149,6 +150,8 @@ public class Trainer : MonoBehaviour
                 {
                     yield return new WaitForEndOfFrame();  
                 }
+     
+                
 
                 
                 stateManager.ExecuteAction();

@@ -111,7 +111,12 @@ public class PlayerMovement : MonoBehaviour
     private void MoveToNextState()
     {
         isMoving = false;
-        if (player.currentState == null || !player.IsAlive() || player.currentState.IsGoal) return;
+        if (player.currentState == null || !player.IsAlive() || player.currentState.IsGoal)
+        {
+
+            Debug.Log($"At State {player.currentState}");
+            return;
+        }
         
         Vector2Int currentGridPos = stateSpaceManager.WorldToGrid(player.currentState.transform.position);
         Vector2Int newGridPos = currentGridPos + moveDirection;
@@ -176,6 +181,11 @@ public class PlayerMovement : MonoBehaviour
                     moveTimer += Time.deltaTime;
                     float t = Mathf.Clamp01(moveTimer / timeStep);
                     transform.position = Vector3.Lerp(new Vector3(player.currentState.transform.position.x + 0.5f, player.transform.position.y, player.currentState.transform.position.z + 0.5f), dest, t);
+                    if (t.IsFloatEqual(1f))
+                    {
+                        transform.position = dest;
+                        isMoving = false;
+                    }
                 }
             }
         }
