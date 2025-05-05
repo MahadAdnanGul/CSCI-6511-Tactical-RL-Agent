@@ -70,7 +70,7 @@ public class SARSALambda : MonoBehaviour, IAgentRL
 
     public void SaveTrainingData()
     {
-        List<TrainingEntry> list = new List<TrainingEntry>();
+        /*List<TrainingEntry> list = new List<TrainingEntry>();
         foreach (var kvp in SarsaTable)
         {
             list.Add(new TrainingEntry { stateActionPair = kvp.Key, value = kvp.Value });
@@ -80,18 +80,18 @@ public class SARSALambda : MonoBehaviour, IAgentRL
         trainingTable.entries = list.ToArray();
         string json = JsonUtility.ToJson(trainingTable, true);
         File.WriteAllText(Path.Combine(Application.persistentDataPath, FileName), json);
-        Debug.Log($"SARSA-Lambda table saved: {FileName}");
+        Debug.Log($"SARSA-Lambda table saved: {FileName}");*/
     }
 
     public void LoadTrainingData()
     {
-        string path = Path.Combine(Application.persistentDataPath, FileName);
+        /*string path = Path.Combine(Application.persistentDataPath, FileName);
         if (!File.Exists(path))
         {
             Debug.LogWarning($"No SARSA Lambda table at {path}");
             return;
-        }
-        string json = File.ReadAllText(path);
+        }*/
+        string json = Resources.Load<TextAsset>("sarsa_lambda_table").text;
         TrainingTable trainingTable = JsonUtility.FromJson<TrainingTable>(json);
         SarsaTable.Clear();
         eligibilityTrace.Clear();
