@@ -16,7 +16,7 @@ There is also a [Windows](https://github.com/MahadAdnanGul/CSCI-6511-Tactical-RL
 ## How To Play:
 Upon launching the game, you will be presented with this screen:
 ![image](https://github.com/user-attachments/assets/9b5926df-6490-4677-80ae-06660a28fd7e)
- - Play (Test Agent): See the agent playing the game over and over again using it's trained SARSA-Lambda Table.
+ - Play (Test Agent): See the agent playing the game over and over again using it's trained SARSA-Lambda Table. You can view the json for the table itself [Here](https://github.com/MahadAdnanGul/CSCI-6511-Tactical-RL-Agent/blob/main/Assets/Resources/sarsa_lambda_table.json)
  - Evaluate 100 Simulations: Runs a fast simulation loop where the agent performs 100 playthoughs. At each iteration you will observe the total reward at the top left of the screen. Once done, you will see a win rate being displayed.
  - Manual Mode: No AI agent. Navigate the state space manually. WASD keys to set movement direction. Space to use smoke and/or switch to idle.
 
