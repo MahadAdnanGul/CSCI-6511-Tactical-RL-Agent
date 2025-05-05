@@ -6,7 +6,20 @@ This project was developed to further cement my understanding of how reinforceme
 The game consists of a 3D maze environment with hostile turrets dynamically scanning different parts of the map. Our agent who is equipped with 1 smoke grenade has to tactically navigate the maze, avoid getting shot, utilize the smoke grenade optimally to block the unavoidable turret, keep it's health topped up and reach the goal state as fast as possible. The agent is practically blind with the exception of a sensor that can tell the agent how far it is from it's goal. During development I implemented a training system that can train using either Q-Learning, SARSA or SARSA Lambda but ultimately decided to use SARSA Lambda for the final trained agent as it was training the agent in the least amount of episodes.
 
 ## Motivation:
-As a passionate game developer, I have always been very interested in properly understanding how reinforcement agents "magically" learn to solve complex games by playing the game a large number of times. This project felt like a great opportunity to implement RL algorithms and train an agent to optimally solve a hand crafted game simulation. 
+As a passionate game developer, I have always been very interested in properly understanding how reinforcement agents "magically" learn to solve complex games by playing the game a large number of times. This project felt like a great opportunity to implement RL algorithms and train an agent to optimally solve a hand crafted game simulation.
+
+## How To Run:
+The easiest way to run the application is via this [WebGL](https://mahad1111.itch.io/tactical-rl-agent) build hosted on itch.io. This will allow you to run the application natively on your browser. You may want to use full screen mode as some of the alert messages that appear on the top left of the screen may get cut out in the website's window.
+
+There is also a [Windows](https://github.com/MahadAdnanGul/CSCI-6511-Tactical-RL-Agent/releases/tag/Windows) build that you can download, extract and play by running the CSCI-6511-Tactical-RL-Agent.exe file.
+
+## How To Play:
+Upon launching the game, you will be presented with this screen:
+![image](https://github.com/user-attachments/assets/9b5926df-6490-4677-80ae-06660a28fd7e)
+ - Play (Test Agent): See the agent playing the game over and over again using it's trained SARSA-Lambda Table.
+ - Evaluate 100 Simulations: Runs a fast simulation loop where the agent performs 100 playthoughs. At each iteration you will observe the total reward at the top left of the screen. Once done, you will see a win rate being displayed.
+ - Manual Mode: No AI agent. Navigate the state space manually. WASD keys to set movement direction. Space to use smoke and/or switch to idle.
+
 
 ## Development:
 All of my scripts can be found in the Assets/Scripts folder.
@@ -94,20 +107,5 @@ I started the training process using Q-learning. I went with a cirriculum style 
 During the training process I decided to use SARSA-Lambda instead as I felt that the eligibility trace should theoretically do a better job at backpropogating the significance of throwing the late smoke to clear a path to the goal state. Once SARSA lambda was implemented, I did notice a significant speed up in training for atleast the first phase (1 turret scenario). The agent was winning most of the time in under 2000 episodes. However it was again stuck trying to figure out the correct smoke position for the final environment. I kept tweaking the reward function until I got to my current iteration. This was still not enough to get the agent to converge in meaningful time. Eventually I realized that while my reward functions do incentivize a high utility smoke as well as the notion of using the smoke as a last resort, there are far too many states for the agent to use a smoke only to learn that it was practically useless to do so. In my last iteration I adjusted my GetLegalActions Function to only make smokes a valid option if there were exposed states nearby, since that should be the only time the agent should even consider using it. Finally, the agent started showed a dramatic improvement. In about 10000 episodes, the agent was fully trained with on average 100% success rate. It learned to avoid the first turret, skip the health pack since it was unharmed and place the perfect smoke to block the second turret's vision and go straight for the goal state.
 
 
-
-
-
-
-
-
-
-
-PENDING...
-//Add reward function
-//Add training process/challenges/how I overcame them and what ended up working well/How I tried different models
-//interpolation to mimic continous behavior
-
-//How to run the application (windows or webgl build)
-//App instructions (3 game modes)
 //Link to sarsa lambda table
 
